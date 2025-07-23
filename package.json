@@ -3,7 +3,7 @@
 	"displayName": "VS Notebook",
 	"description": "Add notes to your code and files in VS Code. Create, view, and manage notes directly within the editor.",
 	"icon": "./src/assets/icon.png",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/brandonrbridges/vs-notebook.git"
@@ -25,8 +25,10 @@
 	"contributes": {
 		"configuration": {
 			"title": "VS Notebook",
+			"category": "VS Notebook",
 			"properties": {
 				"vs-notebook.groupBy": {
+					"title": "Group Notes",
 					"type": "string",
 					"enum": [
 						"none",
@@ -47,20 +49,20 @@
 			"view/title": [
 				{
 					"command": "vs-notebook.openSettings",
-					"when": "view == vsnotesView",
+					"when": "view == vs-notebook-notes",
 					"group": "navigation",
 					"icon": "./src/icons/gear.svg"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "vs-notebook.deleteNote",
-					"when": "view == vsnotesView && viewItem == noteItem",
+					"command": "vs-notebook.renameNote",
+					"when": "view == vs-notebook-notes && viewItem == noteItem",
 					"group": "inline"
 				},
 				{
-					"command": "vs-notebook.renameNote",
-					"when": "view == vsnotesView && viewItem == noteItem",
+					"command": "vs-notebook.deleteNote",
+					"when": "view == vs-notebook-notes && viewItem == noteItem",
 					"group": "inline"
 				}
 			]
@@ -69,60 +71,67 @@
 			{
 				"command": "vs-notebook.openSettings",
 				"title": "Open VS Notebook Settings",
-				"icon": {
-					"light": "./src/icons/gear.svg",
-					"dark": "./src/icons/gear.svg"
-				}
+				"icon": "$(gear)"
 			},
 			{
 				"command": "vs-notebook.createNote",
-				"title": "Create Note"
+				"title": "VS Notebook: Create Note",
+				"icon": "$(note)"
 			},
 			{
 				"command": "vs-notebook.deleteNote",
-				"title": "Delete Note"
+				"title": "VS Notebook: Delete Note",
+				"icon": "$(trash)"
 			},
 			{
 				"command": "vs-notebook.renameNote",
-				"title": "Rename Note"
+				"title": "VS Notebook: Rename Note",
+				"icon": "$(pencil)"
 			},
 			{
 				"command": "vs-notebook.openNotesForLine",
-				"title": "Open Notes for Line"
+				"title": "VS Notebook: Open Notes for Line"
 			},
 			{
 				"command": "vs-notebook.openNotesForRange",
-				"title": "Open Notes for Range"
+				"title": "VS Notebook: Open Notes for Range"
 			}
 		],
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "vs-notebook",
+					"id": "vs-notebook-notes",
 					"title": "VS Notebook",
 					"icon": "./src/assets/sidebar-icon.svg"
 				}
 			]
 		},
 		"views": {
-			"vs-notebook": [
+			"vs-notebook-notes": [
 				{
-					"id": "vsnotesView",
+					"id": "vs-notebook-notes",
 					"name": "My Notes",
 					"icon": "./src/assets/icon.png",
 					"canSelectMany": false,
 					"canSearch": true
 				}
 			]
-		}
+		},
+		"viewsWelcome": [
+			{
+				"view": "vs-notebook-notes",
+				"contents": "Welcome to VS Notebook!\n To get started, click on a line of code (or select a block of code) and use the Command Palette and type \"VS Notebook: Create Note\"."
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
+		"vscode:publish": "vsce publish",
+		"package": "npm run check-types && npm run lint && node esbuild.js --production",
 		"compile": "npm run check-types && npm run lint && node esbuild.js",
 		"watch": "npm-run-all -p watch:*",
 		"watch:esbuild": "node esbuild.js --watch",
 		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-		"package": "npm run check-types && npm run lint && node esbuild.js --production",
 		"compile-tests": "tsc -p . --outDir out",
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",

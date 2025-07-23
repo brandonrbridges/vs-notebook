@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? ''
 
 	const notesProvider = new NotesProvider(rootPath)
-	vscode.window.registerTreeDataProvider('vsnotesView', notesProvider)
+	vscode.window.registerTreeDataProvider('vs-notebook-notes', notesProvider)
 
 	const lensProvider = new NotesLensProvider(rootPath)
 	context.subscriptions.push(
@@ -127,9 +127,12 @@ ${description || ''}`
 				'Yes',
 				'No'
 			)
+
 			if (confirm === 'Yes') {
 				await vscode.workspace.fs.delete(vscode.Uri.file(notePath))
+
 				vscode.window.showInformationMessage('Note deleted')
+
 				notesProvider.refresh()
 				lensProvider.refresh()
 			}
@@ -145,6 +148,7 @@ ${description || ''}`
 				prompt: 'Enter new note name',
 				value: oldName,
 			})
+
 			if (!newName || newName === oldName) {
 				return
 			}
@@ -153,11 +157,14 @@ ${description || ''}`
 				path.dirname(notePath),
 				`${newName.replace(/\s+/g, '-')}.md`
 			)
+
 			await vscode.workspace.fs.rename(
 				vscode.Uri.file(notePath),
 				vscode.Uri.file(newPath)
 			)
+
 			vscode.window.showInformationMessage('Note renamed')
+
 			notesProvider.refresh()
 			lensProvider.refresh()
 		}

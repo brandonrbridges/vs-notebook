@@ -73,6 +73,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 		const lowerQuery = query.toLowerCase()
 
 		const matches: NoteItem[] = []
+
 		for (const file of files) {
 			const fullPath = path.join(notesPath, file)
 			const content = fs.readFileSync(fullPath, 'utf-8').toLowerCase()
@@ -80,6 +81,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				matches.push(new NoteItem(file, fullPath))
 			}
 		}
+
 		return matches
 	}
 
