@@ -1,14 +1,16 @@
 # VS Notebook
 
-![VS Notebook Icon](src/assets/icon.png)
-
 ## Add a Notebook to your Project
+
+![VS Notebook Icon](src/assets/icon.png)
 
 ![VS Notebook Demo](src/assets/demo.png)
 
 VS Notebook is the quickest way to build a reliable notebook for your Project.
 
 All notes are stored in `./vs-notebook` directory in your workspace so they can be easily shared with your team and safely committed to your version control system.
+
+<a href="https://www.buymeacoffee.com/brandonrbridges" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="auto" width="200"></a>
 
 ## Features
 
@@ -36,7 +38,7 @@ None (yet!).
 
 ## Release Notes
 
-### 0.0.2
+### 0.0.3
 
 July 23, 2025
 

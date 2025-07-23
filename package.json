@@ -1,8 +1,9 @@
 {
 	"name": "vs-notebook",
 	"displayName": "VS Notebook",
-	"description": "Quickly take developer notes inline and across your workspace",
-	"version": "0.0.2",
+	"description": "Add notes to your code and files in VS Code. Create, view, and manage notes directly within the editor.",
+	"icon": "./src/assets/icon.png",
+	"version": "0.0.3",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/brandonbridges/vs-notebook.git"
