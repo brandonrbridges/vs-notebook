@@ -2,9 +2,9 @@
 
 ## Add a Notebook to your Project
 
-![VS Notebook Icon](src/assets/icon.png)
+![VS Notebook Icon](./src/assets/icon.png)
 
-![VS Notebook Demo](src/assets/demo.png)
+![VS Notebook Demo](./src/assets/demo.png)
 
 VS Notebook is the quickest way to build a reliable notebook for your Project.
 
