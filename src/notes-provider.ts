@@ -29,7 +29,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			return Promise.resolve([])
 		}
 
-		const notesPath = path.join(this.workspaceRoot, '.vs-notes')
+		const notesPath = path.join(this.workspaceRoot, '.vs-notebook')
 		if (!fs.existsSync(notesPath)) {
 			return Promise.resolve([])
 		}
@@ -47,7 +47,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			return new NoteItem(file, fullPath)
 		})
 
-		const config = vscode.workspace.getConfiguration('vs-notes')
+		const config = vscode.workspace.getConfiguration('vs-notebook')
 		const groupBy = config.get<string>('groupBy', 'none')
 
 		if (groupBy === 'none') {
@@ -63,7 +63,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			return []
 		}
 
-		const notesPath = path.join(this.workspaceRoot, '.vs-notes')
+		const notesPath = path.join(this.workspaceRoot, '.vs-notebook')
 		if (!fs.existsSync(notesPath)) {
 			return []
 		}
@@ -216,7 +216,7 @@ export class NoteItem extends vscode.TreeItem {
 			: ''
 
 		this.command = {
-			command: 'vs-notes.openNote',
+			command: 'vs-notebook.openNote',
 			title: 'Open Note',
 			arguments: [this.fullPath],
 		}

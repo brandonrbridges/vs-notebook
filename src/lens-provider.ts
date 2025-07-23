@@ -16,7 +16,7 @@ export class NotesLensProvider implements vscode.CodeLensProvider {
 	refreshNotes() {
 		this.notes = {}
 
-		const notesDir = path.join(this.workspaceRoot, '.vs-notes')
+		const notesDir = path.join(this.workspaceRoot, '.vs-notebook')
 		if (!fs.existsSync(notesDir)) {
 			return
 		}
@@ -113,8 +113,8 @@ export class NotesLensProvider implements vscode.CodeLensProvider {
 				new vscode.CodeLens(new vscode.Range(startLine, 0, startLine, 0), {
 					title,
 					command: singleLine
-						? 'vs-notes.openNotesForLine'
-						: 'vs-notes.openNotesForRange',
+						? 'vs-notebook.openNotesForLine'
+						: 'vs-notebook.openNotesForRange',
 					arguments: singleLine
 						? [docPath, startLine + 1]
 						: [docPath, ranges[0].start + 1, ranges[0].end + 1],

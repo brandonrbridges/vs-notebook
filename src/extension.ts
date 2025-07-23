@@ -20,28 +20,31 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.languages.registerCodeLensProvider({ scheme: 'file' }, lensProvider)
 	)
 
-	vscode.commands.registerCommand('vs-notes.openSettings', () => {
+	vscode.commands.registerCommand('vs-notebook.openSettings', () => {
 		vscode.commands.executeCommand(
 			'workbench.action.openSettings',
-			'@ext:brandonbridges.vs-notes'
+			'@ext:brandonbridges.vs-notebook'
 		)
 	})
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('vs-notes.openNote', (notePath: string) => {
-			vscode.workspace.openTextDocument(notePath).then((doc) => {
-				vscode.window.showTextDocument(doc)
-			})
-		}),
+		vscode.commands.registerCommand(
+			'vs-notebook.openNote',
+			(notePath: string) => {
+				vscode.workspace.openTextDocument(notePath).then((doc) => {
+					vscode.window.showTextDocument(doc)
+				})
+			}
+		),
 
-		vscode.commands.registerCommand('vs-notes.refreshNotes', () => {
+		vscode.commands.registerCommand('vs-notebook.refreshNotes', () => {
 			notesProvider.refresh()
 			lensProvider.refresh()
 		})
 	)
 
 	const createNote = vscode.commands.registerCommand(
-		'vs-notes.createNote',
+		'vs-notebook.createNote',
 		async () => {
 			const title = await vscode.window.showInputBox({
 				prompt: 'Enter note title',
@@ -85,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			const rootPath = workspaceFolders[0].uri.fsPath
-			const notesDirectory = path.join(rootPath, '.vs-notes')
+			const notesDirectory = path.join(rootPath, '.vs-notebook')
 			const notePath = path.join(
 				notesDirectory,
 				`${title.replace(/\s+/g, '-')}.md`
@@ -115,7 +118,7 @@ ${description || ''}`
 	)
 
 	vscode.commands.registerCommand(
-		'vs-notes.deleteNote',
+		'vs-notebook.deleteNote',
 		async (item: NoteItem) => {
 			const notePath = item.fullPath
 			const confirm = await vscode.window.showWarningMessage(
@@ -134,7 +137,7 @@ ${description || ''}`
 	)
 
 	vscode.commands.registerCommand(
-		'vs-notes.renameNote',
+		'vs-notebook.renameNote',
 		async (item: NoteItem) => {
 			const notePath = item.fullPath
 			const oldName = path.basename(notePath, '.md')
@@ -161,9 +164,9 @@ ${description || ''}`
 	)
 
 	vscode.commands.registerCommand(
-		'vs-notes.openNotesForLine',
+		'vs-notebook.openNotesForLine',
 		(filePath: string, lineNumber: number) => {
-			const notesPath = path.join(rootPath, '.vs-notes')
+			const notesPath = path.join(rootPath, '.vs-notebook')
 
 			if (!fs.existsSync(notesPath)) {
 				return
@@ -208,9 +211,9 @@ ${description || ''}`
 	)
 
 	vscode.commands.registerCommand(
-		'vs-notes.openNotesForRange',
+		'vs-notebook.openNotesForRange',
 		(filePath: string, lineStart: number, lineEnd: number) => {
-			const notesPath = path.join(rootPath, '.vs-notes')
+			const notesPath = path.join(rootPath, '.vs-notebook')
 
 			if (!fs.existsSync(notesPath)) {
 				return
@@ -266,14 +269,14 @@ ${description || ''}`
 	)
 
 	vscode.workspace.onDidSaveTextDocument((doc) => {
-		if (doc.fileName.includes('.vs-notes')) {
+		if (doc.fileName.includes('.vs-notebook')) {
 			notesProvider.refresh()
 			lensProvider.refresh()
 		}
 	})
 
 	vscode.workspace.onDidChangeConfiguration((e) => {
-		if (e.affectsConfiguration('vs-notes.groupBy')) {
+		if (e.affectsConfiguration('vs-notebook.groupBy')) {
 			notesProvider.refresh()
 		}
 	})

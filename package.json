@@ -1,17 +1,18 @@
 {
-	"name": "vs-notes",
-	"displayName": "VS Notes",
+	"name": "vs-notebook",
+	"displayName": "VS Notebook",
 	"description": "Quickly take developer notes inline and across your workspace",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/brandonbridges/vs-notes.git"
+		"url": "https://github.com/brandonbridges/vs-notebook.git"
 	},
 	"author": {
 		"name": "Brandon Bridges",
 		"email": "brandonrbridges@outlook.com"
 	},
 	"publisher": "brandonbridges",
+	"license": "MIT",
 	"engines": {
 		"vscode": "^1.102.0"
 	},
@@ -22,9 +23,9 @@
 	"main": "./dist/extension.js",
 	"contributes": {
 		"configuration": {
-			"title": "VS Notes",
+			"title": "VS Notebook",
 			"properties": {
-				"vs-notes.groupBy": {
+				"vs-notebook.groupBy": {
 					"type": "string",
 					"enum": [
 						"none",
@@ -37,14 +38,14 @@
 						"Group notes by tag - show notes grouped by their tags"
 					],
 					"default": "file",
-					"description": "How to group notes in the VS Notes view?"
+					"description": "How to group notes in the VS Notebook view?"
 				}
 			}
 		},
 		"menus": {
 			"view/title": [
 				{
-					"command": "vs-notes.openSettings",
+					"command": "vs-notebook.openSettings",
 					"when": "view == vsnotesView",
 					"group": "navigation",
 					"icon": "./src/icons/gear.svg"
@@ -52,12 +53,12 @@
 			],
 			"view/item/context": [
 				{
-					"command": "vs-notes.deleteNote",
+					"command": "vs-notebook.deleteNote",
 					"when": "view == vsnotesView && viewItem == noteItem",
 					"group": "inline"
 				},
 				{
-					"command": "vs-notes.renameNote",
+					"command": "vs-notebook.renameNote",
 					"when": "view == vsnotesView && viewItem == noteItem",
 					"group": "inline"
 				}
@@ -65,49 +66,49 @@
 		},
 		"commands": [
 			{
-				"command": "vs-notes.openSettings",
-				"title": "Open VS Notes Settings",
+				"command": "vs-notebook.openSettings",
+				"title": "Open VS Notebook Settings",
 				"icon": {
 					"light": "./src/icons/gear.svg",
 					"dark": "./src/icons/gear.svg"
 				}
 			},
 			{
-				"command": "vs-notes.createNote",
+				"command": "vs-notebook.createNote",
 				"title": "Create Note"
 			},
 			{
-				"command": "vs-notes.deleteNote",
+				"command": "vs-notebook.deleteNote",
 				"title": "Delete Note"
 			},
 			{
-				"command": "vs-notes.renameNote",
+				"command": "vs-notebook.renameNote",
 				"title": "Rename Note"
 			},
 			{
-				"command": "vs-notes.openNotesForLine",
+				"command": "vs-notebook.openNotesForLine",
 				"title": "Open Notes for Line"
 			},
 			{
-				"command": "vs-notes.openNotesForRange",
+				"command": "vs-notebook.openNotesForRange",
 				"title": "Open Notes for Range"
 			}
 		],
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "vs-notes",
-					"title": "VS Notes",
-					"icon": "media/icon.svg"
+					"id": "vs-notebook",
+					"title": "VS Notebook",
+					"icon": "./src/assets/sidebar-icon.svg"
 				}
 			]
 		},
 		"views": {
-			"vs-notes": [
+			"vs-notebook": [
 				{
 					"id": "vsnotesView",
 					"name": "My Notes",
-					"icon": "media/icon.svg",
+					"icon": "./src/assets/icon.png",
 					"canSelectMany": false,
 					"canSearch": true
 				}
