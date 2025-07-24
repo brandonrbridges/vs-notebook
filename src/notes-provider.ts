@@ -13,7 +13,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 		TreeItem | undefined | null | void
 	> = this._onDidChangeTreeData.event
 
-	constructor(private workspaceRoot: string) {}
+	constructor(private workspaceRoot: string, private isGlobal: boolean) {}
 
 	refresh(): void {
 		this._onDidChangeTreeData.fire()
@@ -26,10 +26,14 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 	getChildren(element?: TreeItem): Thenable<TreeItem[]> {
 		if (!this.workspaceRoot) {
 			vscode.window.showInformationMessage('No workspace open')
+
 			return Promise.resolve([])
 		}
 
-		const notesPath = path.join(this.workspaceRoot, '.vs-notebook')
+		const notesPath = this.isGlobal
+			? this.workspaceRoot
+			: path.join(this.workspaceRoot, '.vs-notebook')
+
 		if (!fs.existsSync(notesPath)) {
 			return Promise.resolve([])
 		}
@@ -48,7 +52,11 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 		})
 
 		const config = vscode.workspace.getConfiguration('vs-notebook')
-		const groupBy = config.get<string>('groupBy', 'none')
+		let groupBy = config.get<string>('groupBy', 'none')
+
+		if (this.isGlobal && groupBy === 'file') {
+			groupBy = 'tag'
+		}
 
 		if (groupBy === 'none') {
 			return Promise.resolve(notes)
@@ -126,11 +134,13 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 
 		for (const note of notes) {
 			const metadata = NoteItem.readFrontmatter(note.fullPath)
+
 			let tags =
 				metadata.tags
 					?.split(',')
 					.map((t) => t.trim())
 					.filter(Boolean) ?? []
+
 			let firstTag = tags.length > 0 ? tags[0] : 'Untagged'
 
 			// If the tag is empty string, treat as "Untagged"
@@ -144,10 +154,12 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			if (!groups.has(firstTag)) {
 				groups.set(firstTag, [])
 			}
+
 			groups.get(firstTag)!.push(note)
 		}
 
 		const groupItems: GroupItem[] = []
+
 		for (const [tag, groupNotes] of groups) {
 			groupItems.push(new GroupItem(tag, groupNotes, 'tag'))
 		}
@@ -167,6 +179,7 @@ export class GroupItem extends vscode.TreeItem {
 		this.tooltip = `${this.children.length} note${
 			this.children.length !== 1 ? 's' : ''
 		}`
+
 		this.description = `${this.children.length}`
 
 		// Set icon based on group type
@@ -188,7 +201,12 @@ export class NoteItem extends vscode.TreeItem {
 
 		const tags = metadata.tags?.split(',').map((t) => t.trim()) ?? []
 
-		if (tags.includes('bug')) {
+		if (tags.includes('feature')) {
+			this.iconPath = new vscode.ThemeIcon(
+				'star',
+				new vscode.ThemeColor('charts.green')
+			)
+		} else if (tags.includes('bug')) {
 			this.iconPath = new vscode.ThemeIcon(
 				'bug',
 				new vscode.ThemeColor('errorForeground')

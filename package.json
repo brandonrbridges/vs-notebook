@@ -51,7 +51,13 @@
 					"command": "vs-notebook.openSettings",
 					"when": "view == vs-notebook-notes",
 					"group": "navigation",
-					"icon": "./src/icons/gear.svg"
+					"icon": "$(gear)"
+				},
+				{
+					"command": "vs-notebook.createGlobalNote",
+					"when": "view == vs-notebook-notes-global",
+					"group": "navigation",
+					"icon": "$(note)"
 				}
 			],
 			"view/item/context": [
@@ -76,6 +82,11 @@
 			{
 				"command": "vs-notebook.createNote",
 				"title": "VS Notebook: Create Note",
+				"icon": "$(note)"
+			},
+			{
+				"command": "vs-notebook.createGlobalNote",
+				"title": "VS Notebook: Create Global Note",
 				"icon": "$(note)"
 			},
 			{
@@ -114,13 +125,24 @@
 					"icon": "./src/assets/icon.png",
 					"canSelectMany": false,
 					"canSearch": true
+				},
+				{
+					"id": "vs-notebook-notes-global",
+					"name": "Global Notes",
+					"icon": "./src/assets/icon.png",
+					"canSelectMany": false,
+					"canSearch": true
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
 				"view": "vs-notebook-notes",
-				"contents": "Welcome to VS Notebook!\n To get started, click on a line of code (or select a block of code) and use the Command Palette and type \"VS Notebook: Create Note\"."
+				"contents": "Welcome to VS Notebook!\nTo get started, click on a line of code (or select a block of code) and use the Command Palette and type\n\"VS Notebook: Create Note\"\nTo create a note for that code.\n\nYou can also create notes for files, folders, or globally accessible notes."
+			},
+			{
+				"view": "vs-notebook-notes-global",
+				"contents": "Use the Command Palette and type:\n\"VS Notebook: Create Global Note\"\nThis will create a note that is accessible from anywhere in your workspace.\n\nGlobal notes are useful for storing information that is not tied to a specific file or line of code (such as snippets or documentation)."
 			}
 		]
 	},

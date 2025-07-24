@@ -12,8 +12,17 @@ import { NotesLensProvider } from './lens-provider'
 export function activate(context: vscode.ExtensionContext) {
 	const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? ''
 
-	const notesProvider = new NotesProvider(rootPath)
+	const userHome = require('os').homedir()
+	const globalNotesDir = path.join(userHome, '.vs-notebook-global')
+
+	const notesProvider = new NotesProvider(rootPath, false)
 	vscode.window.registerTreeDataProvider('vs-notebook-notes', notesProvider)
+
+	const globalNotesProvider = new NotesProvider(globalNotesDir, true)
+	vscode.window.registerTreeDataProvider(
+		'vs-notebook-notes-global',
+		globalNotesProvider
+	)
 
 	const lensProvider = new NotesLensProvider(rootPath)
 	context.subscriptions.push(
@@ -39,6 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.commands.registerCommand('vs-notebook.refreshNotes', () => {
 			notesProvider.refresh()
+			globalNotesProvider.refresh()
 			lensProvider.refresh()
 		})
 	)
@@ -79,6 +89,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 			contentFormatter += `tags: ${tags || ''}`
 
+			contentFormatter += `\nurl: ` // Placeholder for future URL support
+
 			const lineNumber = editor ? editor.selection.active.line + 1 : 'Unknown'
 
 			const workspaceFolders = vscode.workspace.workspaceFolders
@@ -117,6 +129,55 @@ ${description || ''}`
 		}
 	)
 
+	const createGlobalNote = vscode.commands.registerCommand(
+		'vs-notebook.createGlobalNote',
+		async () => {
+			const title = await vscode.window.showInputBox({
+				prompt: 'Enter global note title',
+			})
+
+			if (!title) {
+				return
+			}
+
+			const description = await vscode.window.showInputBox({
+				prompt: 'Enter note description',
+			})
+			const tags = await vscode.window.showInputBox({
+				prompt: 'Enter tags (comma-separated, optional)',
+			})
+
+			if (!fs.existsSync(globalNotesDir)) {
+				fs.mkdirSync(globalNotesDir, { recursive: true })
+			}
+
+			const notePath = path.join(
+				globalNotesDir,
+				`${title.replace(/\s+/g, '-')}.md`
+			)
+			const content = `---
+title: ${title}
+tags: ${tags || ''}
+url: 
+---
+
+${description || ''}`
+
+			fs.writeFileSync(notePath, content)
+
+			vscode.window.showInformationMessage(`Global note "${title}" created.`)
+			vscode.workspace.openTextDocument(notePath).then((doc) => {
+				vscode.window.showTextDocument(doc, {
+					viewColumn: vscode.ViewColumn.Beside,
+					preserveFocus: false,
+					preview: false,
+				})
+			})
+
+			globalNotesProvider.refresh()
+		}
+	)
+
 	vscode.commands.registerCommand(
 		'vs-notebook.deleteNote',
 		async (item: NoteItem) => {
@@ -134,6 +195,7 @@ ${description || ''}`
 				vscode.window.showInformationMessage('Note deleted')
 
 				notesProvider.refresh()
+				globalNotesProvider.refresh()
 				lensProvider.refresh()
 			}
 		}
@@ -166,6 +228,7 @@ ${description || ''}`
 			vscode.window.showInformationMessage('Note renamed')
 
 			notesProvider.refresh()
+			globalNotesProvider.refresh()
 			lensProvider.refresh()
 		}
 	)
@@ -278,17 +341,23 @@ ${description || ''}`
 	vscode.workspace.onDidSaveTextDocument((doc) => {
 		if (doc.fileName.includes('.vs-notebook')) {
 			notesProvider.refresh()
+			globalNotesProvider.refresh()
 			lensProvider.refresh()
 		}
 	})
 
 	vscode.workspace.onDidChangeConfiguration((e) => {
-		if (e.affectsConfiguration('vs-notebook.groupBy')) {
+		if (
+			e.affectsConfiguration('vs-notebook.groupBy') ||
+			e.affectsConfiguration('vs-notebook.tagIcons')
+		) {
 			notesProvider.refresh()
+			globalNotesProvider.refresh()
 		}
 	})
 
 	context.subscriptions.push(createNote)
+	context.subscriptions.push(createGlobalNote)
 }
 
 // This method is called when your extension is deactivated
