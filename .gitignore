@@ -29,6 +29,7 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage/
+.vscode-test/
 *.lcov
 
 # nyc test coverage

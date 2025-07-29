@@ -16,6 +16,8 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 
 	private watcher?: chokidar.FSWatcher
 	private refreshTimeout?: NodeJS.Timeout
+	private pollInterval?: NodeJS.Timeout
+	private lastScan: Map<string, number> = new Map()
 
 	constructor(private workspaceRoot: string, private isGlobal: boolean) {}
 
@@ -41,6 +43,8 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				ignored: /^\./,
 				persistent: true,
 				ignoreInitial: true,
+				usePolling: this.isGlobal, // Use polling for global notes to catch cross-instance changes
+				interval: this.isGlobal ? 1000 : undefined, // Poll every second for global notes
 				awaitWriteFinish: {
 					stabilityThreshold: 300,
 					pollInterval: 100
@@ -60,6 +64,11 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 						}
 					}, 5000)
 				})
+
+			// For global notes, add additional polling as fallback for cross-instance sync
+			if (this.isGlobal) {
+				this.startPollingFallback(notesPath)
+			}
 		} catch (error) {
 			console.error(`VS Notebook: Failed to start ${this.isGlobal ? 'global' : 'workspace'} file watcher:`, error)
 		}
@@ -74,13 +83,87 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 		}, 100)
 	}
 
+	private startPollingFallback(notesPath: string): void {
+		this.scanDirectory(notesPath) // Initial scan
+		
+		this.pollInterval = setInterval(() => {
+			if (this.scanDirectory(notesPath)) {
+				this.debouncedRefresh()
+			}
+		}, 2000) // Poll every 2 seconds as fallback
+	}
+
+	private scanDirectory(notesPath: string): boolean {
+		try {
+			if (!fs.existsSync(notesPath)) {
+				return false
+			}
+
+			const files = fs.readdirSync(notesPath).filter(f => f.endsWith('.md'))
+			let hasChanges = false
+
+			// Check for new/removed files
+			const currentFiles = new Set(files)
+			const lastFiles = new Set(this.lastScan.keys())
+			
+			if (currentFiles.size !== lastFiles.size) {
+				hasChanges = true
+			} else {
+				// Check if file set changed
+				for (const file of currentFiles) {
+					if (!lastFiles.has(file)) {
+						hasChanges = true
+						break
+					}
+				}
+			}
+
+			// Check modification times
+			if (!hasChanges) {
+				for (const file of files) {
+					const filePath = path.join(notesPath, file)
+					const stat = fs.statSync(filePath)
+					const lastModified = this.lastScan.get(file)
+					
+					if (!lastModified || stat.mtimeMs > lastModified) {
+						hasChanges = true
+						this.lastScan.set(file, stat.mtimeMs)
+					}
+				}
+			} else {
+				// Update all modification times if we detected file changes
+				for (const file of files) {
+					const filePath = path.join(notesPath, file)
+					const stat = fs.statSync(filePath)
+					this.lastScan.set(file, stat.mtimeMs)
+				}
+			}
+
+			// Remove deleted files from tracking
+			for (const file of lastFiles) {
+				if (!currentFiles.has(file)) {
+					this.lastScan.delete(file)
+				}
+			}
+
+			return hasChanges
+		} catch (error) {
+			console.error('VS Notebook: Error scanning directory:', error)
+			return false
+		}
+	}
+
 	dispose(): void {
 		if (this.refreshTimeout) {
 			clearTimeout(this.refreshTimeout)
 		}
+		if (this.pollInterval) {
+			clearInterval(this.pollInterval)
+		}
 		if (this.watcher) {
 			this.watcher.close()
 		}
+		this.lastScan.clear()
 	}
 
 	getTreeItem(element: TreeItem): vscode.TreeItem {
