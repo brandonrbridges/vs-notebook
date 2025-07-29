@@ -34,9 +34,19 @@ The VS Notebook extension contributes the following settings:
 
 ## Known Issues
 
-None (yet!).
+Please see [GitHub Issues](https://github.com/brandonrbridges/vs-notebook/issues) for a list of known issues and feature requests.
 
 ## Release Notes
+
+### 0.0.7
+
+July 29, 2025
+
+Fixed syncing issues between different instances of VS Code. All notes will now be properly synchronized across all instances.
+
+### 0.0.4 - 0.0.6
+
+General improvements and bug fixes. Changes made to the marketplace listing to better reflect the extension's capabilities.
 
 ### 0.0.3
 

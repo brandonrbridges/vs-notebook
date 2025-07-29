@@ -17,12 +17,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const notesProvider = new NotesProvider(rootPath, false)
 	vscode.window.registerTreeDataProvider('vs-notebook-notes', notesProvider)
+	notesProvider.startWatching()
 
 	const globalNotesProvider = new NotesProvider(globalNotesDir, true)
 	vscode.window.registerTreeDataProvider(
 		'vs-notebook-notes-global',
 		globalNotesProvider
 	)
+	globalNotesProvider.startWatching()
 
 	const lensProvider = new NotesLensProvider(rootPath)
 	context.subscriptions.push(
@@ -358,6 +360,15 @@ ${description || ''}`
 
 	context.subscriptions.push(createNote)
 	context.subscriptions.push(createGlobalNote)
+
+	// Store providers for cleanup on deactivation
+	context.subscriptions.push({
+		dispose: () => {
+			notesProvider.dispose()
+			globalNotesProvider.dispose()
+			lensProvider.dispose()
+		},
+	})
 }
 
 // This method is called when your extension is deactivated

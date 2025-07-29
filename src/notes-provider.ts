@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as chokidar from 'chokidar'
 
 export type TreeItem = NoteItem | GroupItem
 
@@ -13,10 +14,73 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 		TreeItem | undefined | null | void
 	> = this._onDidChangeTreeData.event
 
+	private watcher?: chokidar.FSWatcher
+	private refreshTimeout?: NodeJS.Timeout
+
 	constructor(private workspaceRoot: string, private isGlobal: boolean) {}
 
 	refresh(): void {
 		this._onDidChangeTreeData.fire()
+	}
+
+	startWatching(): void {
+		if (!this.workspaceRoot) {
+			return
+		}
+
+		const notesPath = this.isGlobal
+			? this.workspaceRoot
+			: path.join(this.workspaceRoot, '.vs-notebook')
+
+		try {
+			if (!fs.existsSync(notesPath)) {
+				fs.mkdirSync(notesPath, { recursive: true })
+			}
+
+			this.watcher = chokidar.watch(path.join(notesPath, '*.md'), {
+				ignored: /^\./,
+				persistent: true,
+				ignoreInitial: true,
+				awaitWriteFinish: {
+					stabilityThreshold: 300,
+					pollInterval: 100
+				}
+			})
+
+			this.watcher
+				.on('add', () => this.debouncedRefresh())
+				.on('change', () => this.debouncedRefresh())
+				.on('unlink', () => this.debouncedRefresh())
+				.on('error', (error) => {
+					console.error(`VS Notebook: Error watching ${this.isGlobal ? 'global' : 'workspace'} notes directory:`, error)
+					// Attempt to restart watcher after a delay
+					setTimeout(() => {
+						if (!this.watcher) {
+							this.startWatching()
+						}
+					}, 5000)
+				})
+		} catch (error) {
+			console.error(`VS Notebook: Failed to start ${this.isGlobal ? 'global' : 'workspace'} file watcher:`, error)
+		}
+	}
+
+	private debouncedRefresh(): void {
+		if (this.refreshTimeout) {
+			clearTimeout(this.refreshTimeout)
+		}
+		this.refreshTimeout = setTimeout(() => {
+			this.refresh()
+		}, 100)
+	}
+
+	dispose(): void {
+		if (this.refreshTimeout) {
+			clearTimeout(this.refreshTimeout)
+		}
+		if (this.watcher) {
+			this.watcher.close()
+		}
 	}
 
 	getTreeItem(element: TreeItem): vscode.TreeItem {

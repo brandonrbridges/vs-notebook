@@ -3,7 +3,7 @@
 	"displayName": "VS Notebook",
 	"description": "Add notes to your code and files in VS Code. Create, view, and manage notes directly within the editor.",
 	"icon": "./src/assets/icon.png",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/brandonrbridges/vs-notebook.git"
@@ -175,6 +175,7 @@
 		"@vscode/test-electron": "^2.5.2"
 	},
 	"dependencies": {
-		"@vscode/codicons": "^0.0.38"
+		"@vscode/codicons": "^0.0.38",
+		"chokidar": "^4.0.1"
 	}
 }

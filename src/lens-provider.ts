@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as chokidar from 'chokidar'
 
 export class NotesLensProvider implements vscode.CodeLensProvider {
 	private _onDidChangeCodeLenses = new vscode.EventEmitter<void>()
@@ -8,9 +9,12 @@ export class NotesLensProvider implements vscode.CodeLensProvider {
 		this._onDidChangeCodeLenses.event
 
 	private notes: { [key: string]: { start: number; end: number }[] } = {}
+	private watcher?: chokidar.FSWatcher
+	private refreshTimeout?: NodeJS.Timeout
 
 	constructor(private workspaceRoot: string) {
 		this.refreshNotes()
+		this.startWatching()
 	}
 
 	refreshNotes() {
@@ -74,6 +78,64 @@ export class NotesLensProvider implements vscode.CodeLensProvider {
 	refresh() {
 		this.refreshNotes()
 		this._onDidChangeCodeLenses.fire()
+	}
+
+	startWatching(): void {
+		if (!this.workspaceRoot) {
+			return
+		}
+
+		const notesPath = path.join(this.workspaceRoot, '.vs-notebook')
+
+		if (!fs.existsSync(notesPath)) {
+			return
+		}
+
+		try {
+			this.watcher = chokidar.watch(path.join(notesPath, '*.md'), {
+				ignored: /^\./,
+				persistent: true,
+				ignoreInitial: true,
+				awaitWriteFinish: {
+					stabilityThreshold: 300,
+					pollInterval: 100
+				}
+			})
+
+			this.watcher
+				.on('add', () => this.debouncedRefresh())
+				.on('change', () => this.debouncedRefresh())
+				.on('unlink', () => this.debouncedRefresh())
+				.on('error', (error) => {
+					console.error('VS Notebook: Error watching workspace notes for code lens:', error)
+					// Attempt to restart watcher after a delay
+					setTimeout(() => {
+						if (!this.watcher) {
+							this.startWatching()
+						}
+					}, 5000)
+				})
+		} catch (error) {
+			console.error('VS Notebook: Failed to start code lens file watcher:', error)
+		}
+	}
+
+	private debouncedRefresh(): void {
+		if (this.refreshTimeout) {
+			clearTimeout(this.refreshTimeout)
+		}
+		this.refreshTimeout = setTimeout(() => {
+			this.refresh()
+		}, 100)
+	}
+
+	dispose(): void {
+		if (this.refreshTimeout) {
+			clearTimeout(this.refreshTimeout)
+		}
+		if (this.watcher) {
+			this.watcher.close()
+		}
 	}
 
 	provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {

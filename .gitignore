@@ -1,0 +1,59 @@
+# Build outputs
+dist/
+out/
+*.vsix
+
+# Dependencies
+node_modules/
+bun.lockb
+
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Claude AI private folder
+.claude/
+
+# Test results
+test-results/
+*.test.js
+*.test.js.map
