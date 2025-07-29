@@ -1,0 +1,43 @@
+# Source files
+src/**
+!src/assets/**
+
+# Development files
+.vscode/**
+.gitignore
+.gitattributes
+CLAUDE.md
+
+# Build artifacts
+out/**
+node_modules/**
+.eslintcache
+
+# Testing
+**/test/**
+**/*.test.*
+
+# Config files
+tsconfig.json
+eslint.config.mjs
+esbuild.js
+
+# Documentation (keep README.md for marketplace)
+CHANGELOG.md
+
+# Lock files
+bun.lockb
+package-lock.json
+yarn.lock
+
+# Old VSIX files
+*.vsix
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+*.swp
+*.swo
+*~

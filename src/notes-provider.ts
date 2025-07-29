@@ -47,8 +47,8 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				interval: this.isGlobal ? 1000 : undefined, // Poll every second for global notes
 				awaitWriteFinish: {
 					stabilityThreshold: 300,
-					pollInterval: 100
-				}
+					pollInterval: 100,
+				},
 			})
 
 			this.watcher
@@ -56,7 +56,12 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				.on('change', () => this.debouncedRefresh())
 				.on('unlink', () => this.debouncedRefresh())
 				.on('error', (error) => {
-					console.error(`VS Notebook: Error watching ${this.isGlobal ? 'global' : 'workspace'} notes directory:`, error)
+					console.error(
+						`VS Notebook: Error watching ${
+							this.isGlobal ? 'global' : 'workspace'
+						} notes directory:`,
+						error
+					)
 					// Attempt to restart watcher after a delay
 					setTimeout(() => {
 						if (!this.watcher) {
@@ -70,7 +75,12 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				this.startPollingFallback(notesPath)
 			}
 		} catch (error) {
-			console.error(`VS Notebook: Failed to start ${this.isGlobal ? 'global' : 'workspace'} file watcher:`, error)
+			console.error(
+				`VS Notebook: Failed to start ${
+					this.isGlobal ? 'global' : 'workspace'
+				} file watcher:`,
+				error
+			)
 		}
 	}
 
@@ -85,7 +95,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 
 	private startPollingFallback(notesPath: string): void {
 		this.scanDirectory(notesPath) // Initial scan
-		
+
 		this.pollInterval = setInterval(() => {
 			if (this.scanDirectory(notesPath)) {
 				this.debouncedRefresh()
@@ -99,13 +109,13 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				return false
 			}
 
-			const files = fs.readdirSync(notesPath).filter(f => f.endsWith('.md'))
+			const files = fs.readdirSync(notesPath).filter((f) => f.endsWith('.md'))
 			let hasChanges = false
 
 			// Check for new/removed files
 			const currentFiles = new Set(files)
 			const lastFiles = new Set(this.lastScan.keys())
-			
+
 			if (currentFiles.size !== lastFiles.size) {
 				hasChanges = true
 			} else {
@@ -124,7 +134,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 					const filePath = path.join(notesPath, file)
 					const stat = fs.statSync(filePath)
 					const lastModified = this.lastScan.get(file)
-					
+
 					if (!lastModified || stat.mtimeMs > lastModified) {
 						hasChanges = true
 						this.lastScan.set(file, stat.mtimeMs)
@@ -348,7 +358,12 @@ export class NoteItem extends vscode.TreeItem {
 
 		const tags = metadata.tags?.split(',').map((t) => t.trim()) ?? []
 
-		if (tags.includes('feature')) {
+		if (tags.includes('important')) {
+			this.iconPath = new vscode.ThemeIcon(
+				'alert',
+				new vscode.ThemeColor('charts.red')
+			)
+		} else if (tags.includes('feature')) {
 			this.iconPath = new vscode.ThemeIcon(
 				'star',
 				new vscode.ThemeColor('charts.green')
