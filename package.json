@@ -3,7 +3,7 @@
 	"displayName": "VS Notebook",
 	"description": "Add notes to your code and files in VS Code. Create, view, and manage notes directly within the editor.",
 	"icon": "./src/assets/icon.png",
-	"version": "0.0.10",
+	"version": "0.0.12",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/brandonrbridges/vs-notebook.git"
@@ -54,6 +54,12 @@
 					"icon": "$(gear)"
 				},
 				{
+					"command": "vs-notebook.createProjectNote",
+					"when": "view == vs-notebook-notes-project",
+					"group": "navigation",
+					"icon": "$(note)"
+				},
+				{
 					"command": "vs-notebook.createGlobalNote",
 					"when": "view == vs-notebook-notes-global",
 					"group": "navigation",
@@ -82,6 +88,11 @@
 			{
 				"command": "vs-notebook.createNote",
 				"title": "VS Notebook: Create Note",
+				"icon": "$(note)"
+			},
+			{
+				"command": "vs-notebook.createProjectNote",
+				"title": "VS Notebook: Create Project Note",
 				"icon": "$(note)"
 			},
 			{
@@ -121,7 +132,14 @@
 			"vs-notebook-notes": [
 				{
 					"id": "vs-notebook-notes",
-					"name": "My Notes",
+					"name": "File Notes",
+					"icon": "./src/assets/icon.png",
+					"canSelectMany": false,
+					"canSearch": true
+				},
+				{
+					"id": "vs-notebook-notes-project",
+					"name": "Project Notes",
 					"icon": "./src/assets/icon.png",
 					"canSelectMany": false,
 					"canSearch": true
@@ -138,11 +156,15 @@
 		"viewsWelcome": [
 			{
 				"view": "vs-notebook-notes",
-				"contents": "Welcome to VS Notebook!\nTo get started, click on a line of code (or select a block of code) and use the Command Palette and type\n\"VS Notebook: Create Note\"\nTo create a note for that code.\n\nYou can also create notes for files, folders, or globally accessible notes."
+				"contents": "Welcome to VS Notebook!\nTo get started, click on a line of code (or select a block of code) and use the Command Palette and type\n\"VS Notebook: Create Note\"\nTo create a note for that code."
+			},
+			{
+				"view": "vs-notebook-notes-project",
+				"contents": "Use the Command Palette and type:\n\"VS Notebook: Create Project Note\"\nThis will create a note that is accessible project-wide.\n\nProject notes are useful for storing information about the project as a whole (such as architecture decisions or project TODOs)."
 			},
 			{
 				"view": "vs-notebook-notes-global",
-				"contents": "Use the Command Palette and type:\n\"VS Notebook: Create Global Note\"\nThis will create a note that is accessible from anywhere in your workspace.\n\nGlobal notes are useful for storing information that is not tied to a specific file or line of code (such as snippets or documentation)."
+				"contents": "Use the Command Palette and type:\n\"VS Notebook: Create Global Note\"\nThis will create a note that is accessible from anywhere in your workspace.\n\nGlobal notes are useful for storing information that is not tied to a specific project (such as snippets or documentation)."
 			}
 		]
 	},

@@ -1,6 +1,7 @@
 # Source files
 src/**
-!src/assets/**
+!src/assets/icon.png
+!src/assets/sidebar-icon.svg
 
 # Development files
 .vscode/**

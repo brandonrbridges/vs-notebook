@@ -20,7 +20,7 @@ export class NotesLensProvider implements vscode.CodeLensProvider {
 	refreshNotes() {
 		this.notes = {}
 
-		const notesDir = path.join(this.workspaceRoot, '.vs-notebook')
+		const notesDir = path.join(this.workspaceRoot, '.vs-notebook', 'files')
 		if (!fs.existsSync(notesDir)) {
 			return
 		}
@@ -85,7 +85,7 @@ export class NotesLensProvider implements vscode.CodeLensProvider {
 			return
 		}
 
-		const notesPath = path.join(this.workspaceRoot, '.vs-notebook')
+		const notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'files')
 
 		if (!fs.existsSync(notesPath)) {
 			return

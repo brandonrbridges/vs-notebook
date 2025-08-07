@@ -23,8 +23,8 @@ suite('VS Notebook Extension Tests', () => {
 
 	setup(() => {
 		// Initialize providers for each test
-		notesProvider = new NotesProvider(testWorkspaceRoot, false)
-		globalNotesProvider = new NotesProvider(testGlobalNotesDir, true)
+		notesProvider = new NotesProvider(testWorkspaceRoot, 'file')
+		globalNotesProvider = new NotesProvider(testGlobalNotesDir, 'global')
 	})
 
 	teardown(() => {
@@ -65,12 +65,12 @@ suite('VS Notebook Extension Tests', () => {
 
 		test('should create notes directory when starting to watch', () => {
 			notesProvider.startWatching()
-			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook')
+			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook', 'files')
 			assert.strictEqual(fs.existsSync(notesPath), true)
 		})
 
 		test('should detect notes in directory', async () => {
-			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook')
+			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook', 'files')
 			fs.mkdirSync(notesPath, { recursive: true })
 
 			const noteContent = `---
@@ -105,7 +105,7 @@ This is a test note.`
 		})
 
 		test('should group notes by file when configured', async () => {
-			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook')
+			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook', 'files')
 			fs.mkdirSync(notesPath, { recursive: true })
 
 			// Create multiple notes for the same file
@@ -153,7 +153,7 @@ Second note.`
 		})
 
 		test('should group notes by tag when configured', async () => {
-			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook')
+			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook', 'files')
 			fs.mkdirSync(notesPath, { recursive: true })
 
 			const featureNoteContent = `---
@@ -364,7 +364,7 @@ Global note content.`
 
 	suite('Search Functionality', () => {
 		test('should search notes by content', async () => {
-			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook')
+			const notesPath = path.join(testWorkspaceRoot, '.vs-notebook', 'files')
 			fs.mkdirSync(notesPath, { recursive: true })
 
 			const note1Content = `---

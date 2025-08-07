@@ -7,19 +7,65 @@ import * as fs from 'fs'
 import { NoteItem, NotesProvider } from './notes-provider'
 import { NotesLensProvider } from './lens-provider'
 
+// Migration utility to move existing notes to new structure
+function migrateNotesToNewStructure(rootPath: string): void {
+	const oldNotesPath = path.join(rootPath, '.vs-notebook')
+	const newFilesPath = path.join(oldNotesPath, 'files')
+	const projectPath = path.join(oldNotesPath, 'project')
+
+	if (!fs.existsSync(oldNotesPath)) {
+		return
+	}
+
+	// Create new subdirectories
+	if (!fs.existsSync(newFilesPath)) {
+		fs.mkdirSync(newFilesPath, { recursive: true })
+	}
+	if (!fs.existsSync(projectPath)) {
+		fs.mkdirSync(projectPath, { recursive: true })
+	}
+
+	// Get all .md files in the root .vs-notebook directory
+	const files = fs.readdirSync(oldNotesPath).filter(f => f.endsWith('.md') && !f.startsWith('.'))
+
+	for (const file of files) {
+		const oldFilePath = path.join(oldNotesPath, file)
+		const newFilePath = path.join(newFilesPath, file)
+		
+		// Move file to files subdirectory (these are file-based notes)
+		try {
+			fs.renameSync(oldFilePath, newFilePath)
+		} catch (error) {
+			console.error(`VS Notebook: Error migrating ${file}:`, error)
+		}
+	}
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? ''
 
+	// Run migration to move existing notes to new structure
+	if (rootPath) {
+		migrateNotesToNewStructure(rootPath)
+	}
+
 	const userHome = require('os').homedir()
 	const globalNotesDir = path.join(userHome, '.vs-notebook-global')
 
-	const notesProvider = new NotesProvider(rootPath, false)
+	// File notes provider (reads from .vs-notebook/files/)
+	const notesProvider = new NotesProvider(rootPath, 'file')
 	vscode.window.registerTreeDataProvider('vs-notebook-notes', notesProvider)
 	notesProvider.startWatching()
 
-	const globalNotesProvider = new NotesProvider(globalNotesDir, true)
+	// Project notes provider (reads from .vs-notebook/project/)
+	const projectNotesProvider = new NotesProvider(rootPath, 'project')
+	vscode.window.registerTreeDataProvider('vs-notebook-notes-project', projectNotesProvider)
+	projectNotesProvider.startWatching()
+
+	// Global notes provider (reads from ~/.vs-notebook-global)
+	const globalNotesProvider = new NotesProvider(globalNotesDir, 'global')
 	vscode.window.registerTreeDataProvider(
 		'vs-notebook-notes-global',
 		globalNotesProvider
@@ -50,6 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.commands.registerCommand('vs-notebook.refreshNotes', () => {
 			notesProvider.refresh()
+			projectNotesProvider.refresh()
 			globalNotesProvider.refresh()
 			lensProvider.refresh()
 		})
@@ -102,7 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			const rootPath = workspaceFolders[0].uri.fsPath
-			const notesDirectory = path.join(rootPath, '.vs-notebook')
+			const notesDirectory = path.join(rootPath, '.vs-notebook', 'files')
 			const notePath = path.join(
 				notesDirectory,
 				`${title.replace(/\s+/g, '-')}.md`
@@ -128,6 +175,65 @@ ${description || ''}`
 					preview: false,
 				})
 			})
+		}
+	)
+
+	const createProjectNote = vscode.commands.registerCommand(
+		'vs-notebook.createProjectNote',
+		async () => {
+			const title = await vscode.window.showInputBox({
+				prompt: 'Enter project note title',
+			})
+
+			if (!title) {
+				return
+			}
+
+			const description = await vscode.window.showInputBox({
+				prompt: 'Enter note description',
+			})
+
+			const tags = await vscode.window.showInputBox({
+				prompt: 'Enter tags (comma-separated, optional)',
+			})
+
+			const workspaceFolders = vscode.workspace.workspaceFolders
+			if (!workspaceFolders) {
+				vscode.window.showErrorMessage('No workspace folder found.')
+				return
+			}
+
+			const rootPath = workspaceFolders[0].uri.fsPath
+			const notesDirectory = path.join(rootPath, '.vs-notebook', 'project')
+			const notePath = path.join(
+				notesDirectory,
+				`${title.replace(/\s+/g, '-')}.md`
+			)
+
+			if (!fs.existsSync(notesDirectory)) {
+				fs.mkdirSync(notesDirectory, { recursive: true })
+			}
+
+			const content = `---
+title: ${title}
+tags: ${tags || ''}
+url: 
+---
+
+${description || ''}`
+
+			fs.writeFileSync(notePath, content)
+
+			vscode.window.showInformationMessage(`Project note "${title}" created.`)
+			vscode.workspace.openTextDocument(notePath).then((doc) => {
+				vscode.window.showTextDocument(doc, {
+					viewColumn: vscode.ViewColumn.Beside,
+					preserveFocus: false,
+					preview: false,
+				})
+			})
+
+			projectNotesProvider.refresh()
 		}
 	)
 
@@ -197,6 +303,7 @@ ${description || ''}`
 				vscode.window.showInformationMessage('Note deleted')
 
 				notesProvider.refresh()
+				projectNotesProvider.refresh()
 				globalNotesProvider.refresh()
 				lensProvider.refresh()
 			}
@@ -230,6 +337,7 @@ ${description || ''}`
 			vscode.window.showInformationMessage('Note renamed')
 
 			notesProvider.refresh()
+			projectNotesProvider.refresh()
 			globalNotesProvider.refresh()
 			lensProvider.refresh()
 		}
@@ -238,7 +346,7 @@ ${description || ''}`
 	vscode.commands.registerCommand(
 		'vs-notebook.openNotesForLine',
 		(filePath: string, lineNumber: number) => {
-			const notesPath = path.join(rootPath, '.vs-notebook')
+			const notesPath = path.join(rootPath, '.vs-notebook', 'files')
 
 			if (!fs.existsSync(notesPath)) {
 				return
@@ -285,7 +393,7 @@ ${description || ''}`
 	vscode.commands.registerCommand(
 		'vs-notebook.openNotesForRange',
 		(filePath: string, lineStart: number, lineEnd: number) => {
-			const notesPath = path.join(rootPath, '.vs-notebook')
+			const notesPath = path.join(rootPath, '.vs-notebook', 'files')
 
 			if (!fs.existsSync(notesPath)) {
 				return
@@ -343,6 +451,7 @@ ${description || ''}`
 	vscode.workspace.onDidSaveTextDocument((doc) => {
 		if (doc.fileName.includes('.vs-notebook')) {
 			notesProvider.refresh()
+			projectNotesProvider.refresh()
 			globalNotesProvider.refresh()
 			lensProvider.refresh()
 		}
@@ -354,17 +463,20 @@ ${description || ''}`
 			e.affectsConfiguration('vs-notebook.tagIcons')
 		) {
 			notesProvider.refresh()
+			projectNotesProvider.refresh()
 			globalNotesProvider.refresh()
 		}
 	})
 
 	context.subscriptions.push(createNote)
+	context.subscriptions.push(createProjectNote)
 	context.subscriptions.push(createGlobalNote)
 
 	// Store providers for cleanup on deactivation
 	context.subscriptions.push({
 		dispose: () => {
 			notesProvider.dispose()
+			projectNotesProvider.dispose()
 			globalNotesProvider.dispose()
 			lensProvider.dispose()
 		},

@@ -19,7 +19,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 	private pollInterval?: NodeJS.Timeout
 	private lastScan: Map<string, number> = new Map()
 
-	constructor(private workspaceRoot: string, private isGlobal: boolean) {}
+	constructor(private workspaceRoot: string, private noteType: 'file' | 'project' | 'global') {}
 
 	refresh(): void {
 		this._onDidChangeTreeData.fire()
@@ -30,9 +30,14 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			return
 		}
 
-		const notesPath = this.isGlobal
-			? this.workspaceRoot
-			: path.join(this.workspaceRoot, '.vs-notebook')
+		let notesPath: string
+		if (this.noteType === 'global') {
+			notesPath = this.workspaceRoot
+		} else if (this.noteType === 'file') {
+			notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'files')
+		} else { // project
+			notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'project')
+		}
 
 		try {
 			if (!fs.existsSync(notesPath)) {
@@ -43,8 +48,8 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				ignored: /^\./,
 				persistent: true,
 				ignoreInitial: true,
-				usePolling: this.isGlobal, // Use polling for global notes to catch cross-instance changes
-				interval: this.isGlobal ? 1000 : undefined, // Poll every second for global notes
+				usePolling: this.noteType === 'global', // Use polling for global notes to catch cross-instance changes
+				interval: this.noteType === 'global' ? 1000 : undefined, // Poll every second for global notes
 				awaitWriteFinish: {
 					stabilityThreshold: 300,
 					pollInterval: 100,
@@ -57,9 +62,7 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				.on('unlink', () => this.debouncedRefresh())
 				.on('error', (error) => {
 					console.error(
-						`VS Notebook: Error watching ${
-							this.isGlobal ? 'global' : 'workspace'
-						} notes directory:`,
+						`VS Notebook: Error watching ${this.noteType} notes directory:`,
 						error
 					)
 					// Attempt to restart watcher after a delay
@@ -71,14 +74,12 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 				})
 
 			// For global notes, add additional polling as fallback for cross-instance sync
-			if (this.isGlobal) {
+			if (this.noteType === 'global') {
 				this.startPollingFallback(notesPath)
 			}
 		} catch (error) {
 			console.error(
-				`VS Notebook: Failed to start ${
-					this.isGlobal ? 'global' : 'workspace'
-				} file watcher:`,
+				`VS Notebook: Failed to start ${this.noteType} file watcher:`,
 				error
 			)
 		}
@@ -187,9 +188,14 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			return Promise.resolve([])
 		}
 
-		const notesPath = this.isGlobal
-			? this.workspaceRoot
-			: path.join(this.workspaceRoot, '.vs-notebook')
+		let notesPath: string
+		if (this.noteType === 'global') {
+			notesPath = this.workspaceRoot
+		} else if (this.noteType === 'file') {
+			notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'files')
+		} else { // project
+			notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'project')
+		}
 
 		if (!fs.existsSync(notesPath)) {
 			return Promise.resolve([])
@@ -211,7 +217,8 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 		const config = vscode.workspace.getConfiguration('vs-notebook')
 		let groupBy = config.get<string>('groupBy', 'none')
 
-		if (this.isGlobal && groupBy === 'file') {
+		// For global and project notes, don't group by file since they're not file-specific
+		if ((this.noteType === 'global' || this.noteType === 'project') && groupBy === 'file') {
 			groupBy = 'tag'
 		}
 
@@ -228,7 +235,15 @@ export class NotesProvider implements vscode.TreeDataProvider<TreeItem> {
 			return []
 		}
 
-		const notesPath = path.join(this.workspaceRoot, '.vs-notebook')
+		let notesPath: string
+		if (this.noteType === 'global') {
+			notesPath = this.workspaceRoot
+		} else if (this.noteType === 'file') {
+			notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'files')
+		} else { // project
+			notesPath = path.join(this.workspaceRoot, '.vs-notebook', 'project')
+		}
+		
 		if (!fs.existsSync(notesPath)) {
 			return []
 		}
