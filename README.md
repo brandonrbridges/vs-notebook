@@ -137,34 +137,5 @@ Please see [GitHub Issues](https://github.com/brandonrbridges/vs-notebook/issues
 
 Automated tests for note creation, grouping, search, and file watching.
 
-## Release Notes
-
-### 0.0.7
-
-July 29, 2025
-
-Fixed syncing issues between different instances of VS Code. All notes will now be properly synchronized across all instances.
-
-### 0.0.4 - 0.0.6
-
-General improvements and bug fixes. Changes made to the marketplace listing to better reflect the extension's capabilities.
-
-### 0.0.3
-
-July 23, 2025
-
-Updated the extension icon and sidebar icon to better reflect the extension's purpose.
-
-### 0.0.1
-
-July 23, 2025
-
-Initial release of VS Notebook.
-
-- Create notes from selected code snippets or lines
-- View, update, and delete notes from the sidebar
-- Tags for better organization
-- Stored in the `./vs-notebook` directory
-- Group notes by file or tag
 - Version controlled and shareable
 - Code Lens support to show the number of notes per line/block
