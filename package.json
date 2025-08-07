@@ -3,7 +3,7 @@
 	"displayName": "VS Notebook",
 	"description": "Add notes to your code and files in VS Code. Create, view, and manage notes directly within the editor.",
 	"icon": "./src/assets/icon.png",
-	"version": "0.0.12",
+	"version": "0.0.13",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/brandonrbridges/vs-notebook.git"
@@ -76,6 +76,50 @@
 					"command": "vs-notebook.deleteNote",
 					"when": "view == vs-notebook-notes && viewItem == noteItem",
 					"group": "inline"
+				},
+				{
+					"command": "vs-notebook.renameNote",
+					"when": "view == vs-notebook-notes-project && viewItem == noteItem",
+					"group": "inline"
+				},
+				{
+					"command": "vs-notebook.deleteNote",
+					"when": "view == vs-notebook-notes-project && viewItem == noteItem",
+					"group": "inline"
+				},
+				{
+					"command": "vs-notebook.renameNote",
+					"when": "view == vs-notebook-notes-global && viewItem == noteItem",
+					"group": "inline"
+				},
+				{
+					"command": "vs-notebook.deleteNote",
+					"when": "view == vs-notebook-notes-global && viewItem == noteItem",
+					"group": "inline"
+				},
+				{
+					"command": "vs-notebook.renameNote",
+					"when": "view == vs-notebook-notes && viewItem == noteItem"
+				},
+				{
+					"command": "vs-notebook.deleteNote",
+					"when": "view == vs-notebook-notes && viewItem == noteItem"
+				},
+				{
+					"command": "vs-notebook.renameNote",
+					"when": "view == vs-notebook-notes-project && viewItem == noteItem"
+				},
+				{
+					"command": "vs-notebook.deleteNote",
+					"when": "view == vs-notebook-notes-project && viewItem == noteItem"
+				},
+				{
+					"command": "vs-notebook.renameNote",
+					"when": "view == vs-notebook-notes-global && viewItem == noteItem"
+				},
+				{
+					"command": "vs-notebook.deleteNote",
+					"when": "view == vs-notebook-notes-global && viewItem == noteItem"
 				}
 			]
 		},
